@@ -32,7 +32,6 @@ class AnalyticsStatsSensor(Entity):
 
     async def async_update(self):
         """Update sensor."""
-        _LOGGER.info("Updatinggggggggggggg")
         try:
             async with async_timeout.timeout(10, loop=self.hass.loop):
                 response = await self.session.get(URL)
@@ -47,8 +46,8 @@ class AnalyticsStatsSensor(Entity):
             self.avg_addons = round(latest["avg_addons"], 2)
             self.avg_states = round(latest["avg_states"], 2)
 
-        except Exception as error:  # pylint: disable=broad-except
-            _LOGGER.debug("%s - Could not update - %s", self._name, error)
+        except Exception as error:
+            _LOGGER.debug("%s - Could not update: %s", self._name, error)
 
     @property
     def name(self):
