@@ -1,4 +1,5 @@
 {
     "name": "Analytics Stats",
+    "render_readme": true,
     "iot_class": "Cloud Polling"
 }
