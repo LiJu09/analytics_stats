@@ -63,6 +63,54 @@ class AnalyticsStatsSensor(SensorEntity):
         self.value = round(latest[self.path], self.decimal)
 
 
+class AnalyticsStatsInstallTypesSensor(SensorEntity):
+    """Sensor used to display installation types information from Home Asistant Analytics."""
+
+    def __init__(self, data, name, icon, path, decimal):
+        """Initialize an AnalyticsStatsSensor sensor."""
+        self._data = data
+        self._name = name
+        self._icon = icon
+        self.path = path
+        self.decimal = decimal
+        self.value = None
+        self.install_types_attr = {"os": 0,
+                                   "container": 0,
+                                   "core": 0,
+                                   "supervised": 0}
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def icon(self):
+        """Return the mdi icon of the sensor."""
+        return self._icon
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self.value
+
+    @property
+    def device_state_attributes(self):
+        """Attributes."""
+        return self.install_types_attr
+
+    def update(self):
+        """Update the sensor from a new JSON object."""
+        self._data.update()
+        latest = self._data.data[list(self._data.data.keys())[-1]]
+        key_list = list(self.install_types_attr.keys())
+        _LOGGER.debug("🆙 Updating %s", self._name)
+        self.value = round(latest[self.path], self.decimal)
+        
+        for key in key_list:
+            self.install_types_attr.update({key: latest["installation_types"][key]})
+
+
 class AnalyticsStatsData:
     """Class used to pull data from API and create sensors."""
 
@@ -100,15 +148,12 @@ class AnalyticsStatsData:
         if self.data is None:
             return
 
-        dev = AnalyticsStatsSensor(self, "Active Installations", "mdi:home-group", "active_installations", 0)
-        self.devices.append(dev)
-        dev = AnalyticsStatsSensor(self, "Average Addons", "mdi:puzzle", "avg_addons", 2)
-        self.devices.append(dev)
-        dev = AnalyticsStatsSensor(self, "Average Integrations", "mdi:puzzle", "avg_integrations", 2)
-        self.devices.append(dev)
-        dev = AnalyticsStatsSensor(self, "Average Entities", "mdi:shape", "avg_states", 2)
-        self.devices.append(dev)
-        dev = AnalyticsStatsSensor(self, "Average Automations", "mdi:robot", "avg_automations", 2)
-        self.devices.append(dev)
-        dev = AnalyticsStatsSensor(self, "Average Users", "mdi:account-multiple", "avg_users", 2)
-        self.devices.append(dev)
+        self.devices = [AnalyticsStatsInstallTypesSensor(self, "Active Installations", "mdi:home-group", "active_installations", 0),
+                        AnalyticsStatsSensor(self, "Reports Statistics", "mdi:home-analytics", "reports_statistics", 0),
+                        AnalyticsStatsSensor(self, "Reports Integrations", "mdi:home-plus", "reports_integrations", 0),
+                        AnalyticsStatsSensor(self, "Average Addons", "mdi:puzzle", "avg_addons", 2),
+                        AnalyticsStatsSensor(self, "Average Integrations", "mdi:puzzle", "avg_integrations", 2),
+                        AnalyticsStatsSensor(self, "Average Entities", "mdi:shape", "avg_states", 2),
+                        AnalyticsStatsSensor(self, "Average Automations", "mdi:robot", "avg_automations", 2),
+                        AnalyticsStatsSensor(self, "Average Users", "mdi:account-multiple", "avg_users", 2),
+        ]
