@@ -132,7 +132,7 @@ class AnalyticsStatsData:
 
     def refresh(self):
         """Download and parse JSON from API."""
-        data_url = "https://analytics-api.home-assistant.io/v1"
+        data_url = "https://analytics.home-assistant.io/data.json"
 
         try:
             response = requests.get(data_url, timeout=30)
