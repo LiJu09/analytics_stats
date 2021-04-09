@@ -21,7 +21,7 @@ RETRY_INTERVAL = timedelta(seconds=30)
 
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up the Open Hardware Monitor platform."""
+    """Set up the Analytics Stats platform."""
     data = AnalyticsStatsData(config, hass)
     if data.data is None:
         raise PlatformNotReady
@@ -64,10 +64,10 @@ class AnalyticsStatsSensor(SensorEntity):
 
 
 class AnalyticsStatsData:
-    """Class used to pull data from OHM and create sensors."""
+    """Class used to pull data from API and create sensors."""
 
     def __init__(self, config, hass):
-        """Initialize the Open Hardware Monitor data-handler."""
+        """Initialize the Analytics Stats data-handler."""
         self.data = None
         self._config = config
         self._hass = hass
