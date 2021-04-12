@@ -3,6 +3,8 @@
 
 #### Still in development
 
+Sensor for data from Home Assistant Analytics
+
 ## Installation
 
 ### Install with HACS (recommended)
