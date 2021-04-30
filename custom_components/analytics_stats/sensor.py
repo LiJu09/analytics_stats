@@ -58,7 +58,7 @@ class AnalyticsStatsSensor(SensorEntity):
     def update(self):
         """Update the sensor from a new JSON object."""
         self._data.update()
-        latest = self._data.data[list(self._data.data.keys())[-1]]
+        latest = self._data.data["current"]
         _LOGGER.debug("🆙 Updating %s", self._name)
         self.value = round(latest[self.path], self.decimal)
 
@@ -102,7 +102,7 @@ class AnalyticsStatsInstallTypesSensor(SensorEntity):
     def update(self):
         """Update the sensor from a new JSON object."""
         self._data.update()
-        latest = self._data.data[list(self._data.data.keys())[-1]]
+        latest = self._data.data["current"]
         key_list = list(self.install_types_attr.keys())
         _LOGGER.debug("🆙 Updating %s", self._name)
         self.value = round(latest[self.path], self.decimal)
