@@ -4,14 +4,12 @@ from datetime import timedelta
 import logging
 
 import requests
-#import voluptuous as vol
+import voluptuous as vol
 
-#from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.exceptions import PlatformNotReady
-#import homeassistant.helpers.config_validation as cv
+import homeassistant.helpers.config_validation as cv
 from homeassistant.util import Throttle
-#from homeassistant.util.dt import utcnow
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,10 +17,16 @@ MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 SCAN_INTERVAL = timedelta(seconds=600)
 RETRY_INTERVAL = timedelta(seconds=30)
 
+CONF_COUNTRY = 'countries'
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Optional(CONF_COUNTRY): cv.string,
+})
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Analytics Stats platform."""
-    data = AnalyticsStatsData(config, hass)
+    countries = config.get(CONF_COUNTRY)
+    data = AnalyticsStatsData(config, hass, countries)
     if data.data is None:
         raise PlatformNotReady
     add_entities(data.devices, True)
@@ -58,9 +62,8 @@ class AnalyticsStatsSensor(SensorEntity):
     def update(self):
         """Update the sensor from a new JSON object."""
         self._data.update()
-        latest = self._data.data["current"]
         _LOGGER.debug("🆙 Updating %s", self._name)
-        self.value = round(latest[self.path], self.decimal)
+        self.value = round(self._data.data["current"][self.path], self.decimal)
 
 
 class AnalyticsStatsInstallTypesSensor(SensorEntity):
@@ -110,16 +113,48 @@ class AnalyticsStatsInstallTypesSensor(SensorEntity):
         for key in key_list:
             self.install_types_attr.update({key: latest["installation_types"][key]})
 
+class AnalyticsStatsCountrySensor(SensorEntity):
+    """Sensor used to display information from Home Asistant Analytics."""
+
+    def __init__(self, data, name, icon, path):
+        """Initialize an AnalyticsStatsSensor sensor."""
+        self._data = data
+        self._name = name
+        self._icon = icon
+        self.path = path
+        self.value = None
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def icon(self):
+        """Return the mdi icon of the sensor."""
+        return self._icon
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self.value
+
+    def update(self):
+        """Update the sensor from a new JSON object."""
+        self._data.update()
+        _LOGGER.debug("🆙 Updating %s", self._name)
+        self.value = self._data.data["current"]["countries"][self.path]
 
 class AnalyticsStatsData:
     """Class used to pull data from API and create sensors."""
 
-    def __init__(self, config, hass):
+    def __init__(self, config, hass, countries):
         """Initialize the Analytics Stats data-handler."""
         self.data = None
         self._config = config
         self._hass = hass
         self.devices = []
+        self.countries = countries
         self.initialize()
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
@@ -157,3 +192,7 @@ class AnalyticsStatsData:
                         AnalyticsStatsSensor(self, "Average Automations", "mdi:robot", "avg_automations", 2),
                         AnalyticsStatsSensor(self, "Average Users", "mdi:account-multiple", "avg_users", 2),
         ]
+
+        if self.countries is not None:
+            for country in self.countries.split(" "):
+                self.devices += [AnalyticsStatsCountrySensor(self, country + " Installations", "mdi:home-group", country),]

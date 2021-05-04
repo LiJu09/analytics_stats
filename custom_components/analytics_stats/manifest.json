@@ -1,7 +1,7 @@
 {
   "domain": "analytics_stats",
   "name": "Analytics Stats",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "documentation": "https://github.com/LiJu09/analytics-stats",
   "requirements": [],
   "dependencies": [],

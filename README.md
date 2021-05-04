@@ -1,7 +1,7 @@
 # Analytics Stats
 
 
-#### Still in development
+#### Maybe in development
 
 Sensor for data from Home Assistant Analytics
 
@@ -22,8 +22,15 @@ Sensor for data from Home Assistant Analytics
 - Add configuration to `configuration.yaml`
 - Restart Home Assistant
 
-##### Configuration:
+### Options
+| Option | Description | Required | Example |
+--- | --- | --- | ---
+| countries | String of [country codes](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) separated by space | no | `"SK CZ"` |
+
+
+#### Example configuration:
 ```yaml
 sensor:
   - platform: analytics_stats
+    countries: "SK CZ"
 ```
