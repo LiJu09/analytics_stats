@@ -15,7 +15,7 @@ Sensor for data from Home Assistant Analytics
 
 #### Install mannualy
 
-- Copy content of `analytics_stats/custom_components/` to `custom_components/` in your Home Assistant
+- Copy `custom_components/analytics_stats` to `custom_components/analytics_stats` in your Home Assistant
 
 ## Configuration
 
