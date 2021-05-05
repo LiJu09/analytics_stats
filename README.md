@@ -26,7 +26,7 @@ Sensor for data from Home Assistant Analytics
 | Option | Description | Required | Example |
 --- | --- | --- | ---
 | countries | String of [country codes](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) separated by space | no | `"SK CZ"` |
-| integrations | String of integration names separated by space (home-assistant.io/integrations/{name}/) | no | `"esphome systemmonitor"` |
+| integrations | String of integration names separated by space (`home-assistant.io/integrations/{name}/`) | no | `"esphome systemmonitor"` |
 
 
 #### Example configuration:
