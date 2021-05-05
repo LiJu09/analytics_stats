@@ -26,6 +26,7 @@ Sensor for data from Home Assistant Analytics
 | Option | Description | Required | Example |
 --- | --- | --- | ---
 | countries | String of [country codes](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) separated by space | no | `"SK CZ"` |
+| integrations | String of integrations names separated by space | no | `"esphome systemmonitor"` |
 
 
 #### Example configuration:
@@ -33,4 +34,5 @@ Sensor for data from Home Assistant Analytics
 sensor:
   - platform: analytics_stats
     countries: "SK CZ"
+    integrations: "esphome systemmonitor"
 ```

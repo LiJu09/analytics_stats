@@ -18,15 +18,18 @@ SCAN_INTERVAL = timedelta(seconds=600)
 RETRY_INTERVAL = timedelta(seconds=30)
 
 CONF_COUNTRY = 'countries'
+CONF_INTEGRATION = 'integrations'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_COUNTRY): cv.string,
+    vol.Optional(CONF_INTEGRATION): cv.string,
 })
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Analytics Stats platform."""
     countries = config.get(CONF_COUNTRY)
-    data = AnalyticsStatsData(config, hass, countries)
+    integrations = config.get(CONF_INTEGRATION)
+    data = AnalyticsStatsData(config, hass, countries, integrations)
     if data.data is None:
         raise PlatformNotReady
     add_entities(data.devices, True)
@@ -65,6 +68,45 @@ class AnalyticsStatsSensor(SensorEntity):
         _LOGGER.debug("🆙 Updating %s", self._name)
         self.value = round(self._data.data["current"][self.path], self.decimal)
 
+class AnalyticsStatsReportsSensor(SensorEntity):
+    """Sensor used to display information from Home Asistant Analytics."""
+
+    def __init__(self, data, name, icon, path, decimal):
+        """Initialize an AnalyticsStatsSensor sensor."""
+        self._data = data
+        self._name = name
+        self._icon = icon
+        self.path = path
+        self.decimal = decimal
+        self.value = None
+        self.percentage = None
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def icon(self):
+        """Return the mdi icon of the sensor."""
+        return self._icon
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self.value
+
+    @property
+    def device_state_attributes(self):
+        """Attributes."""
+        return {'percentage': self.percentage}
+
+    def update(self):
+        """Update the sensor from a new JSON object."""
+        self._data.update()
+        _LOGGER.debug("🆙 Updating %s", self._name)
+        self.value = round(self._data.data["current"][self.path], self.decimal)
+        self.percentage = round((100 * self.value) / self._data.data["current"]["extended_data_from"],2)
 
 class AnalyticsStatsInstallTypesSensor(SensorEntity):
     """Sensor used to display installation types information from Home Asistant Analytics."""
@@ -123,6 +165,7 @@ class AnalyticsStatsCountrySensor(SensorEntity):
         self._icon = icon
         self.path = path
         self.value = None
+        self.percentage = None
 
     @property
     def name(self):
@@ -139,22 +182,68 @@ class AnalyticsStatsCountrySensor(SensorEntity):
         """Return the state of the sensor."""
         return self.value
 
+    @property
+    def device_state_attributes(self):
+        """Attributes."""
+        return {'percentage': self.percentage}
+
     def update(self):
         """Update the sensor from a new JSON object."""
         self._data.update()
         _LOGGER.debug("🆙 Updating %s", self._name)
         self.value = self._data.data["current"]["countries"][self.path]
+        self.percentage = round((100 * self.value) / self._data.data["current"]["extended_data_from"],2)
+
+class AnalyticsStatsIntegrationSensor(SensorEntity):
+    """Sensor used to display information from Home Asistant Analytics."""
+
+    def __init__(self, data, name, icon, path):
+        """Initialize an AnalyticsStatsSensor sensor."""
+        self._data = data
+        self._name = name
+        self._icon = icon
+        self.path = path
+        self.value = None
+        self.percentage = None
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def icon(self):
+        """Return the mdi icon of the sensor."""
+        return self._icon
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self.value
+
+    @property
+    def device_state_attributes(self):
+        """Attributes."""
+        return {'percentage': self.percentage}
+
+    def update(self):
+        """Update the sensor from a new JSON object."""
+        self._data.update()
+        _LOGGER.debug("🆙 Updating %s", self._name)
+        self.value = self._data.data["current"]["integrations"][self.path]
+        self.percentage = round((100 * self.value) / self._data.data["current"]["reports_integrations"],2)
 
 class AnalyticsStatsData:
     """Class used to pull data from API and create sensors."""
 
-    def __init__(self, config, hass, countries):
+    def __init__(self, config, hass, countries, integrations):
         """Initialize the Analytics Stats data-handler."""
         self.data = None
         self._config = config
         self._hass = hass
         self.devices = []
         self.countries = countries
+        self.integrations = integrations
         self.initialize()
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
@@ -184,8 +273,8 @@ class AnalyticsStatsData:
             return
 
         self.devices = [AnalyticsStatsInstallTypesSensor(self, "Active Installations", "mdi:home-group", "active_installations", 0),
-                        AnalyticsStatsSensor(self, "Reports Statistics", "mdi:home-analytics", "reports_statistics", 0),
-                        AnalyticsStatsSensor(self, "Reports Integrations", "mdi:home-plus", "reports_integrations", 0),
+                        AnalyticsStatsReportsSensor(self, "Reports Statistics", "mdi:home-analytics", "reports_statistics", 0),
+                        AnalyticsStatsReportsSensor(self, "Reports Integrations", "mdi:home-plus", "reports_integrations", 0),
                         AnalyticsStatsSensor(self, "Average Addons", "mdi:puzzle", "avg_addons", 2),
                         AnalyticsStatsSensor(self, "Average Integrations", "mdi:puzzle", "avg_integrations", 2),
                         AnalyticsStatsSensor(self, "Average Entities", "mdi:shape", "avg_states", 2),
@@ -196,3 +285,7 @@ class AnalyticsStatsData:
         if self.countries is not None:
             for country in self.countries.split(" "):
                 self.devices += [AnalyticsStatsCountrySensor(self, country + " Installations", "mdi:home-group", country),]
+        
+        if self.integrations is not None:
+            for integration in self.integrations.split(" "):
+                self.devices += [AnalyticsStatsIntegrationSensor(self, integration + " Installations", "mdi:puzzle", integration),]
