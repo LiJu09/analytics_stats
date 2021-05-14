@@ -19,17 +19,23 @@ RETRY_INTERVAL = timedelta(seconds=30)
 
 CONF_COUNTRY = 'countries'
 CONF_INTEGRATION = 'integrations'
+CONF_BOARD = 'boards'
+CONF_OS_VERSION = 'os_versions'
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_COUNTRY): cv.string,
     vol.Optional(CONF_INTEGRATION): cv.string,
+    vol.Optional(CONF_BOARD): cv.string,
+    vol.Optional(CONF_OS_VERSION): cv.string,
 })
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Analytics Stats platform."""
     countries = config.get(CONF_COUNTRY)
     integrations = config.get(CONF_INTEGRATION)
-    data = AnalyticsStatsData(config, hass, countries, integrations)
+    boards = config.get(CONF_BOARD)
+    os_versions = config.get(CONF_OS_VERSION)
+    data = AnalyticsStatsData(config, hass, countries, integrations, boards, os_versions)
     if data.data is None:
         raise PlatformNotReady
     add_entities(data.devices, True)
@@ -233,10 +239,42 @@ class AnalyticsStatsIntegrationSensor(SensorEntity):
         self.value = self._data.data["current"]["integrations"][self.path]
         self.percentage = round((100 * self.value) / self._data.data["current"]["reports_integrations"],2)
 
+class AnalyticsStatsOSSensor(SensorEntity):
+    """Sensor used to display information from Home Asistant Analytics."""
+
+    def __init__(self, data, name, icon, path):
+        """Initialize an AnalyticsStatsSensor sensor."""
+        self._data = data
+        self._name = name
+        self._icon = icon
+        self.path = path
+        self.value = None
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def icon(self):
+        """Return the mdi icon of the sensor."""
+        return self._icon
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self.value
+
+    def update(self):
+        """Update the sensor from a new JSON object."""
+        self._data.update()
+        _LOGGER.debug("🆙 Updating %s", self._name)
+        self.value = self._data.data["current"]["operating_system"][self.path[0]][self.path[1]]
+
 class AnalyticsStatsData:
     """Class used to pull data from API and create sensors."""
 
-    def __init__(self, config, hass, countries, integrations):
+    def __init__(self, config, hass, countries, integrations, boards, os_versions):
         """Initialize the Analytics Stats data-handler."""
         self.data = None
         self._config = config
@@ -244,6 +282,8 @@ class AnalyticsStatsData:
         self.devices = []
         self.countries = countries
         self.integrations = integrations
+        self.boards = boards
+        self.os_versions = os_versions
         self.initialize()
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
@@ -289,3 +329,11 @@ class AnalyticsStatsData:
         if self.integrations is not None:
             for integration in self.integrations.split(" "):
                 self.devices += [AnalyticsStatsIntegrationSensor(self, integration + " Installations", "mdi:puzzle", integration),]
+
+        if self.boards is not None:
+            for board in self.boards.split(" "):
+                self.devices += [AnalyticsStatsOSSensor(self, "Installations on " + board, "mdi:server", ["boards", board]),]
+
+        if self.os_versions is not None:
+            for os_version in self.os_versions.split(" "):
+                self.devices += [AnalyticsStatsOSSensor(self, os_version + " OS Installations", "mdi:server", ["versions", os_version]),]
