@@ -26,13 +26,16 @@ Sensor for data from Home Assistant Analytics
 | Option | Description | Required | Example |
 --- | --- | --- | ---
 | countries | String of [country codes](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) separated by space | no | `"SK CZ"` |
-| integrations | String of integration names separated by space from URL `home-assistant.io/integrations/{name}/` | no | `"esphome"` |
-
+| integrations | String of integration names separated by space from URL `home-assistant.io/integrations/{name}/` | no | `"esphome systemmonitor"` |
+| boards | String of board names from [data.json](https://analytics.home-assistant.io/data.json) `current -> operating_system -> boards` | no | `"rpi4-64 rpi4"` |
+| os_versions | String of OS versions from [data.json](https://analytics.home-assistant.io/data.json) `current -> operating_system -> versions` | no | `"5.13 6.0.rc1"` |
 
 #### Example configuration:
 ```yaml
 sensor:
   - platform: analytics_stats
     countries: "SK CZ"
-    integrations: "esphome"
+    integrations: "esphome systemmonitor"
+    boards: "rpi4-64 rpi4"
+    os_versions: "5.13 6.0.rc1"
 ```
