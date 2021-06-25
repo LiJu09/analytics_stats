@@ -1,7 +1,6 @@
 # Analytics Stats
 
-
-#### Maybe in development
+[![CodeFactor](https://www.codefactor.io/repository/github/liju09/analytics_stats/badge)](https://www.codefactor.io/repository/github/liju09/analytics_stats)
 
 Sensor for data from Home Assistant Analytics
 
