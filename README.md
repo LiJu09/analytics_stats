@@ -1,6 +1,6 @@
-# Analytics Stats
+# Migrated to [Codeberg]( https://codeberg.org/LiJu09/analytics_stats)
 
-[![CodeFactor](https://www.codefactor.io/repository/github/liju09/analytics_stats/badge)](https://www.codefactor.io/repository/github/liju09/analytics_stats)
+# Analytics Stats
 
 Sensor for data from Home Assistant Analytics
 
